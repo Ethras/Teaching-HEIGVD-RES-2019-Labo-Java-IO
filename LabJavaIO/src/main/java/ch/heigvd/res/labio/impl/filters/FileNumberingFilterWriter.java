@@ -35,7 +35,7 @@ public class FileNumberingFilterWriter extends FilterWriter {
         int index = -1;
         while ((index = str.indexOf("\n", index + 1)) != -1) {
             lineCount++;
-            str = str.substring(0, index + 1) + lineCount + "\t" + ((str.length() > index + 2) ? str.substring(index + 2) : "");
+            str = str.substring(0, index + 1) + lineCount + "\t" + ((str.length() > index + 1) ? str.substring(index + 1) : "");
         }
         System.out.print(str);
         out.write(str);
