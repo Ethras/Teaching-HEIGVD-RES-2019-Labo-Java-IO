@@ -27,59 +27,31 @@ public class FileNumberingFilterWriter extends FilterWriter {
 
     @Override
     public void write(String str, int off, int len) throws IOException {
-        str = str.substring(off, off + len);
-
-        // if first line
-        if (lineCount == 0)
-            str = ++lineCount + "\t" + str;
-
-
-        // Detect what type of newLIne
-
-        if (str.length() == 1) {
-            if (str.equals("\r")) {
-                possibleWindowsNewLine = true;
-            } else if (possibleWindowsNewLine) {
-                if (str.equals("\n")) {
-                    str = str + ++lineCount + "\t";
-                } else {
-                    str = ++lineCount + "\t" + str;
-                }
-                possibleWindowsNewLine = false;
-            } else if (str.equals("\n")) {
-                str = str + ++lineCount + "\t";
-            }
+        for (int i = off; i < off + len; ++i) {
+            this.write(str.charAt(i));
         }
-        // Chaine de plusieurs caractères
-        else {
-            String newLine = str.contains("\r") && !str.contains("\r\n") ? "\r" : "\n";
-            int index = -1;
-            while ((index = str.indexOf(newLine, index + 1)) != -1) {
-                lineCount++;
-                str = str.substring(0, index + 1) + lineCount + "\t" + ((str.length() > index + 1) ? str.substring(index + 1) : "");
-            }
-        }
-
-        System.out.print(str);
-        out.write(str);
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (possibleWindowsNewLine) {
-            write(lineCount + "\t");
-        }
-        super.close();
     }
 
     @Override
     public void write(char[] cbuf, int off, int len) throws IOException {
-        write(new String(cbuf), off, len);
+        for (int i = off; i < off + len; ++i) {
+            this.write(cbuf[i]);
+        }
     }
 
     @Override
     public void write(int c) throws IOException {
-        write(String.valueOf((char) c), 0, 1);
+        if (lineCount == 0 || possibleWindowsNewLine && c != '\n')
+            out.write(++lineCount + "\t");
+
+        possibleWindowsNewLine = c == '\r';
+
+        out.write(c);
+
+        // new line in every case after "\n"
+        if (c == '\n') {
+            out.write(++lineCount + "\t");
+        }
     }
 
 }
