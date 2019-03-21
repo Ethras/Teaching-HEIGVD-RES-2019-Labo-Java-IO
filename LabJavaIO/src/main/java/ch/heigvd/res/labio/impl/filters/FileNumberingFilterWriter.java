@@ -19,6 +19,7 @@ public class FileNumberingFilterWriter extends FilterWriter {
 
     private static final Logger LOG = Logger.getLogger(FileNumberingFilterWriter.class.getName());
     private int lineCount = 0;
+    private boolean possibleWindowsNewLine = false;
 
     public FileNumberingFilterWriter(Writer out) {
         super(out);
@@ -32,13 +33,43 @@ public class FileNumberingFilterWriter extends FilterWriter {
         if (lineCount == 0)
             str = ++lineCount + "\t" + str;
 
-        int index = -1;
-        while ((index = str.indexOf("\n", index + 1)) != -1) {
-            lineCount++;
-            str = str.substring(0, index + 1) + lineCount + "\t" + ((str.length() > index + 1) ? str.substring(index + 1) : "");
+
+        // Detect what type of newLIne
+
+        if (str.length() == 1) {
+            if (str.equals("\r")) {
+                possibleWindowsNewLine = true;
+            } else if (possibleWindowsNewLine) {
+                if (str.equals("\n")) {
+                    str = str + ++lineCount + "\t";
+                } else {
+                    str = ++lineCount + "\t" + str;
+                }
+                possibleWindowsNewLine = false;
+            } else if (str.equals("\n")) {
+                str = str + ++lineCount + "\t";
+            }
         }
+        // Chaine de plusieurs caractères
+        else {
+            String newLine = str.contains("\r") && !str.contains("\r\n") ? "\r" : "\n";
+            int index = -1;
+            while ((index = str.indexOf(newLine, index + 1)) != -1) {
+                lineCount++;
+                str = str.substring(0, index + 1) + lineCount + "\t" + ((str.length() > index + 1) ? str.substring(index + 1) : "");
+            }
+        }
+
         System.out.print(str);
         out.write(str);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (possibleWindowsNewLine) {
+            write(lineCount + "\t");
+        }
+        super.close();
     }
 
     @Override
