@@ -89,32 +89,13 @@ public class Application implements IApplication {
              * one method provided by this class, which is responsible for storing the content of the
              * quote in a text file (and for generating the directories based on the tags).
              */
+
+            storeQuote(quote, "quote-" + i + ".utf8");
             LOG.info("Received a new joke with " + quote.getTags().size() + " tags.");
-            String foldersTag = "/";
             for (String tag : quote.getTags()) {
-                foldersTag += tag + "/";
                 LOG.info("> " + tag);
 
             }
-
-            // Folder creation based on tags
-            File folder = new File(WORKSPACE_DIRECTORY + foldersTag);
-            if (!folder.exists())
-                folder.mkdirs();
-
-            // Store content of the quote
-            File quoteFile = new File(WORKSPACE_DIRECTORY + foldersTag + "quote-" + i + ".utf8");
-            OutputStreamWriter writer = null;
-            try {
-                writer = new OutputStreamWriter(new FileOutputStream(quoteFile), StandardCharsets.UTF_8);
-                writer.write(quote.getQuote());
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (writer != null)
-                    writer.close();
-            }
-
         }
     }
 
@@ -144,7 +125,16 @@ public class Application implements IApplication {
      * @throws IOException
      */
     void storeQuote(Quote quote, String filename) throws IOException {
-        throw new UnsupportedOperationException("The student has not implemented this method yet.");
+        StringBuilder foldersTag = new StringBuilder("/");
+
+
+        for (String tag : quote.getTags()) {
+            foldersTag.append(tag).append("/");
+        }
+
+        // Store content of the quote
+        File quoteFile = new File(WORKSPACE_DIRECTORY + foldersTag.toString() + filename);
+        FileUtils.write(quoteFile, quote.getQuote());
     }
 
     /**
